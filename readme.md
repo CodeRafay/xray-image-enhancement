@@ -1,112 +1,118 @@
-### **1. Introduction**
+# Chest X-Ray Image Enhancement using Point Processing Techniques
 
-Chest X-rays are widely used in the medical field for diagnosing diseases like pneumonia, tuberculosis, and lung cancer. However, many chest X-ray images suffer from **low contrast** or poor visibility of structures, especially in dark or bright regions. This makes it difficult for radiologists to clearly identify abnormalities.
-The goal of this project is to **enhance chest X-ray images** using digital image processing techniques so that details inside the lungs and bone structures become more visible for diagnostic purposes.
+## 📌 Introduction
 
----
+Medical imaging often suffers from low contrast, making it difficult for radiologists and automated systems to detect abnormalities such as **pneumonia in chest X-rays**. Enhancing these images can reveal hidden details, improve visibility of anatomical structures, and support more accurate diagnosis.
 
-### **2. Dataset**
-
-- **Source**: Publicly available Chest X-Ray dataset (e.g., Kaggle “Chest X-Ray Images” dataset).
-- **Format**: Images are grayscale, stored in `.png` or `.jpeg` format.
-- **Resolution**: Varies from 1024×1024 to smaller resolutions (depending on source).
-- **Preprocessing**: Images are converted to grayscale if not already.
+This project focuses on improving **the visibility of bone and lung structures in low-contrast X-ray images** using **point processing transformations** and histogram-based techniques.
 
 ---
 
-### **3. Methodology & Justification**
+## 📂 Dataset
 
-#### **Technique 1: Power-Law (Gamma) Transformation**
+**Source**: [Kaggle – Chest X-Ray Pneumonia Dataset](https://www.kaggle.com/datasets/paultimothymooney/chest-xray-pneumonia)
 
-- **Justification**: Gamma transformation is effective in controlling brightness.
+- The dataset is organized into **3 folders**: `train`, `test`, and `val`, each containing subfolders for categories **Pneumonia** and **Normal**.
+- Contains **5,863 anterior-posterior (AP) chest X-Ray images** (JPEG).
+- Patient group: **pediatric patients aged 1–5 years**, collected at Guangzhou Women and Children’s Medical Center.
+- Quality control: Low-quality/unreadable scans were removed. Diagnoses were graded by **two expert physicians**, with an additional third review on the evaluation set for consistency.
 
-  - If **γ < 1**, dark regions are brightened (useful for lung details hidden in dark areas).
-  - If **γ > 1**, bright regions are compressed (useful if image is overexposed).
+---
 
-- **Transformation Function**:
+## ⚙️ Prerequisites
+
+Before running the project, install the following dependencies:
+
+```bash
+pip install opencv-python matplotlib numpy
+```
+
+If running on **Google Colab**, you only need to upload your notebook and dataset.
+
+---
+
+## 🔬 Methodology & Justification
+
+### 1. **Gamma (Power-Law) Transformation**
+
+- **Justification**: Enhances visibility in darker regions while compressing bright areas. Useful for lung field details.
+- **Function**:
 
   $$
   s = c \cdot r^\gamma
   $$
 
-  where $r$ = input pixel intensity (normalized \[0,1]), $\gamma$ = gamma value, and $c=1$.
+  where `c` is a scaling constant and `γ` controls brightness/contrast.
 
 ---
 
-#### **Technique 2: Histogram Equalization (HE)**
+### 2. **Histogram Equalization**
 
-- **Justification**: HE redistributes pixel intensities across the full range \[0–255].
-  This enhances global contrast, making bones and tissues more distinguishable.
-- **Transformation Function (CDF-based mapping)**:
+- **Justification**: Spreads out pixel intensities, improving global contrast.
+- **Function**: Redistributes histogram values so intensities are more evenly spread across 0–255.
+
+---
+
+### 3. **Contrast Stretching**
+
+- **Justification**: Expands a narrow range of intensity values to cover the full spectrum, improving image clarity.
+- **Function**:
 
   $$
-  s_k = (L-1) \cdot \sum_{j=0}^k p(r_j)
+  s = \frac{(r - r_{min})}{(r_{max} - r_{min})} \times (L-1)
   $$
 
-  where $p(r_j)$ = probability of intensity level $r_j$, $L=256$.
+---
+
+### 4. **Gamma + Histogram Equalization (Combination)**
+
+- **Justification**: Gamma first enhances darker lung regions, while histogram equalization redistributes contrast globally. This gives the most balanced and clinically useful result.
 
 ---
 
-#### **Technique 3: Contrast Stretching**
+## 📊 Results & Analysis
 
-- **Justification**: If useful pixel intensities lie in a limited range (say 50–200), contrast stretching maps them to \[0,255].
-- **Transformation Function**:
+- **Gamma Transformation**: Improved darker details but limited global contrast.
+- **Histogram Equalization**: Strong global contrast improvement, but sometimes introduced noise in bright regions.
+- **Contrast Stretching**: Helped when intensity range was narrow but less effective in varied datasets.
+- **Combination (Gamma + Histogram Equalization)**: Provided the **best overall enhancement**, balancing detail visibility with global contrast.
 
-  $$
-  s = \frac{(r-r_{min})}{(r_{max}-r_{min})} \cdot 255
-  $$
+### Histogram Behavior Summary (Quick Guide)
 
-  where $r_{min}$ and $r_{max}$ are chosen thresholds.
-
----
-
-#### **Technique 4: Combination (Gamma + Histogram Equalization)**
-
-- **Justification**: A two-step process can yield better results:
-
-  1. Gamma correction brightens hidden details in dark lung areas.
-  2. Histogram Equalization redistributes them across the full intensity range.
-
-- **Expected Benefit**: Balanced contrast and better visibility of both dark and bright regions.
+- **Gamma (<1)**: Histogram shifts right (brighter image).
+- **Gamma (>1)**: Histogram shifts left (darker image).
+- **Histogram Equalization**: Histogram flattens and spreads across full range.
+- **Contrast Stretching**: Histogram expands from compressed/narrow range to full 0–255.
+- **Combination**: Histogram shows both spread and adjusted distribution for balanced enhancement.
 
 ---
 
-### **4. Results & Analysis**
+## Conclusion
 
-#### **Visual Comparison**
-
-- Present **Original vs Enhanced images** side-by-side for each technique (your dashboard already shows this).
-
-#### **Histogram Analysis**
-
-- **Gamma Transformation**: Histogram shifts right (γ<1) or left (γ>1). Doesn’t always cover full range.
-- **Histogram Equalization**: Histogram spreads more evenly across \[0–255].
-- **Contrast Stretching**: Histogram stretched across full range with spikes at 0 and 255 (clipping).
-- **Gamma + HE**: Histogram spans 0–255, distribution smoother and more balanced.
-
-#### **Critical Evaluation**
-
-- Gamma alone is useful if the image is too dark or bright but may not improve all regions.
-- Histogram Equalization works well for overall contrast but sometimes over-enhances noise.
-- Contrast Stretching gives strong expansion but may lose details in extreme regions.
-- Gamma + Histogram Equalization generally gave the **best results** for chest X-rays: lung details became clearer, bone visibility improved, and contrast was balanced.
+- The combination of **Gamma Transformation + Histogram Equalization** gave the **most diagnostically useful results**.
+- This combination enhanced subtle lung details while also redistributing global contrast effectively.
+- **Recommendation**: For medical image enhancement tasks, particularly chest X-rays, apply **Gamma → Histogram Equalization** for optimal clarity.
 
 ---
 
-### **5. Conclusion**
+## 💻 Usage
 
-- **Most Effective Technique**: The **combination of Gamma Transformation + Histogram Equalization** produced the most balanced and clinically useful enhancement.
-- **Recommendation**: For medical imaging tasks like chest X-rays, a two-step enhancement pipeline should be preferred over single transformations.
+1. Run the Jupyter Notebook / Colab Notebook.
+2. Upload a chest X-ray image (`.jpg`, `.jpeg`, `.png`).
+3. Select a transformation (Gamma, Histogram Equalization, Contrast Stretching, or Combination).
+4. View **original vs enhanced image** side by side with their histograms.
+5. Optionally **save the enhanced image** to your local machine.
+
+---
+
+## 📂 Appendix (Code)
+
+The full well-commented code is available in the project notebook:
+
+- Check the attached `.ipynb` file in this repository.
 
 ---
 
-### **6. Appendix (Code)**
+👨‍💻 **Author**: Rafay Adeel
 
-- The **full, well-commented dashboard code** (the one you finalized) should be attached here as:
-
-  - A `.py` file if running locally in VS Code.
-  - A `.ipynb` Jupyter Notebook if running in Colab.
-
-- GitHub link can also be provided if you want to make it professional.
-
----
+📧 Contact: [Rafay Adeel](mailto:rafayadeel1999@gmail.com)
