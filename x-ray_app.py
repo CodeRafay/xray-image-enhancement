@@ -72,7 +72,12 @@ def apply_gamma_hist(img, gamma):
 # ----------------------------
 
 st.set_page_config(page_title="X-Ray Enhancement Dashboard", layout="wide")
-st.title("🩻 Chest X-Ray Enhancement Dashboard")
+# Logo + Title in columns
+col1, col2 = st.columns([1, 6])  # adjust ratios as needed
+with col1:
+    st.image("assets/logo.png", width=80)   # make sure logo.png is in the same repo folder
+with col2:
+    st.title("Chest X-Ray Enhancement Dashboard")
 
 uploaded_file = st.file_uploader("Upload a Chest X-Ray Image", type=["png", "jpg", "jpeg"])
 
@@ -122,3 +127,4 @@ if uploaded_file is not None:
     )
 else:
     st.info("Please upload an image to get started.")
+
